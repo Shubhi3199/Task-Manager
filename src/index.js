@@ -73,17 +73,25 @@ app.get('/tasks/:id',async (req, res) =>{
 
 app.patch('/users/:id', async (req, res) =>{
    const _id = req.params.id;
+   const updates = Object.keys(req.body);
+   const allowedUpdates = ['name', 'email', 'age', 'password'];
+   const isValidOperation = updates.every(update => allowedUpdates.includes(update));
+
+   if(!isValidOperation){
+       return res.status(400).send({error: 'Invalid Updates!'});
+   }
    try{
        const user = await User.findByIdAndUpdate(_id, req.body,{
-           new: true,   // gives us back the new user after update applied
+           new: true,   // gives us back the new user after update applied in res,send()
            runValidators: true
-           } ,{
-           name: 'GoogleGuy'
            }
        );
+       if(!user){
+           return res.status(404).send()
+       }
        res.send(user)
    }catch (e) {
-       res.status(500).send(e);
+       res.status(400).send(e);
    }
 });
 
