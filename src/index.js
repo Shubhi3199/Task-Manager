@@ -95,6 +95,43 @@ app.patch('/users/:id', async (req, res) =>{
    }
 });
 
+app.patch('/tasks/:id', async (req, res) =>{
+    const _id = req.params.id;
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ['description', 'completed'];
+    const isValidOperation = updates.every(update => allowedUpdates.includes(update));
+    if(!isValidOperation){
+        return res.status(400).send();
+    }
+    try{
+        const task = await Task.findByIdAndUpdate(_id, req.body, {
+            new: true,
+            runValidators: true,
+            useFindAndModify: false
+        });
+        if(!task){
+            return res.status(400).send();
+        }
+        res.send(task)
+    }catch (e) {
+        res.status(404).send(e);
+    }
+
+});
+
+app.delete('/users/:id', async (req, res) =>{
+    const _id = req.params.id;
+    try{
+        const user =await User.findByIdAndDelete(_id );
+        if(!user){
+            return res.status(404).send()
+        }
+        res.send(user)
+    }catch (e) {
+        res.status(500).send();
+    }
+});
+
 app.listen(port, () =>{
     console.log('Server is set up :')
 });
