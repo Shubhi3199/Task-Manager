@@ -1,136 +1,17 @@
 const express = require('express');
 const User = require('./models/user');
 const Task = require('./models/task');
+const userRouter = require('./routers/user');
+const taskRouter = require('./routers/task');
 require('./db/mongoose');
 
 const app = express();
 const port = process.env.PORT || 3000;  //for heroku hosting
 
 app.use(express.json());
+app.use(userRouter);
+app.use(taskRouter);
 
-app.post('/users', (req, res) => {
-    const user = new User(req.body);
-    user.save().then(() =>{
-        res.send(user)
-    }).catch((e) =>{
-        res.status(400).send(e)
-    })
-});
-
-app.get('/users', (req, res) =>{
-    User.find({}).then((users) =>{
-        res.send(users)
-    }).catch((e) =>{
-        res.status(500).send(e)
-    })
-});
-
-app.get('/users/:id', (req, res) =>{
-    const _id = req.params.id;
-    User.findById(_id).then((user) =>{
-        if(!user){
-            return res.status(500).send()
-        }
-        res.send(user)
-    }).catch((e) =>{
-        res.status(500).send()
-    })
-});
-
-app.post('/tasks', async (req, res) => {
-        const task = new Task(req.body);
-
-        try{
-            await task.save();
-            res.status(201).send(task)
-        }catch (e) {
-            res.status(400).send(e)
-        }
-
-    }
-);
-
-app.get('/tasks', async (req, res) =>{
-
-    try{
-        const tasks = await Task.find({});
-        res.send(tasks)
-    }catch (e) {
-        res.status(500).send(e)
-    }
-
-});
-
-app.get('/tasks/:id',async (req, res) =>{
-    const _id = req.params.id;
-    try{
-        const task = await Task.findById(_id);
-        res.send(task);
-    }catch (e) {
-        res.status(500).send(e)
-    }
-});
-
-app.patch('/users/:id', async (req, res) =>{
-   const _id = req.params.id;
-   const updates = Object.keys(req.body);
-   const allowedUpdates = ['name', 'email', 'age', 'password'];
-   const isValidOperation = updates.every(update => allowedUpdates.includes(update));
-
-   if(!isValidOperation){
-       return res.status(400).send({error: 'Invalid Updates!'});
-   }
-   try{
-       const user = await User.findByIdAndUpdate(_id, req.body,{
-           new: true,   // gives us back the new user after update applied in res,send()
-           runValidators: true
-           }
-       );
-       if(!user){
-           return res.status(404).send()
-       }
-       res.send(user)
-   }catch (e) {
-       res.status(400).send(e);
-   }
-});
-
-app.patch('/tasks/:id', async (req, res) =>{
-    const _id = req.params.id;
-    const updates = Object.keys(req.body);
-    const allowedUpdates = ['description', 'completed'];
-    const isValidOperation = updates.every(update => allowedUpdates.includes(update));
-    if(!isValidOperation){
-        return res.status(400).send();
-    }
-    try{
-        const task = await Task.findByIdAndUpdate(_id, req.body, {
-            new: true,
-            runValidators: true,
-            useFindAndModify: false
-        });
-        if(!task){
-            return res.status(400).send();
-        }
-        res.send(task)
-    }catch (e) {
-        res.status(404).send(e);
-    }
-
-});
-
-app.delete('/users/:id', async (req, res) =>{
-    const _id = req.params.id;
-    try{
-        const user =await User.findByIdAndDelete(_id );
-        if(!user){
-            return res.status(404).send()
-        }
-        res.send(user)
-    }catch (e) {
-        res.status(500).send();
-    }
-});
 
 app.listen(port, () =>{
     console.log('Server is set up :')
