@@ -41,15 +41,18 @@ router.patch('/users/:id', async (req, res) =>{
         return res.status(400).send({error: 'Invalid Updates!'});
     }
     try{
-        const user = await User.findByIdAndUpdate(_id, req.body,{
-                new: true,   // gives us back the new user after update applied in res,send()
-                runValidators: true
-            }
-        );
+        // const user = await User.findByIdAndUpdate(_id, req.body,{
+        //         new: true,   // gives us back the new user after update applied in res.send()
+        //         runValidators: true
+        //     }
+        // );
+        const user = await User.findById(_id); // certain queries bypass more advanced features like middleware, so we are not abe to use findAndUpdate() and that is why we are updating and saving the user manually
+        updates.forEach((update) => user[update] = req.body[update]); // in the updating of a user it's not necessary that all the fields will be updated that is updating is a dynamic process so cannot hard code it.
+        user.save();                // so in the above line we use bracket notation to dynamically update a user..
         if(!user){
             return res.status(404).send()
         }
-        res.send(user)
+        await  res.send(user)
     }catch (e) {
         res.status(400).send(e);
     }
