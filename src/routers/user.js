@@ -13,12 +13,8 @@ router.post('/users', async (req, res) => {
     })
 });
 
-router.get('/users', (req, res) =>{
-    User.find({}).then((users) =>{
-        res.send(users)
-    }).catch((e) =>{
-        res.status(500).send(e)
-    })
+router.get('/users/me', auth, (req, res) =>{
+    res.send(req.user)
 });
 
 router.get('/users/:id', (req, res) =>{

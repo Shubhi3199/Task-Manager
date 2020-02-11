@@ -5,7 +5,11 @@ const auth = async (req, res, next) =>{
   try{
       const token = req.header('Authorization').replace('Bearer ', '');
       const decodedToken = jwt.verify(token, 'nodejscourse');
-       // console.log(decodedToken);
+      const user = await User.findOne( {_id: decodedToken._id, 'tokens.token': token} );
+      if(!user){
+          throw new Error()
+      }
+      req.user = user;
       next();
   }catch (e) {
       res.status(401).send({ error: 'Please Authenticate!'});
